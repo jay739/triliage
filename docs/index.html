@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>triliage: A modern, native desktop client for Trilium Notes</title>
+    <meta name="description" content="Trilium is a capable self-hosted notes app whose only client is its own dated Electron UI. triliage talks to any Trilium instance over the documented ETAPI and gives it a fresh interface built from..." />
+    <meta property="og:title" content="triliage: A modern, native desktop client for Trilium Notes" />
+    <meta property="og:description" content="Trilium is a capable self-hosted notes app whose only client is its own dated Electron UI. triliage talks to any Trilium instance over the documented ETAPI and gives it a fresh interface built from..." />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Ctext%20y%3D%270.9em%27%20font-size%3D%2790%27%3E%F0%9F%97%82%EF%B8%8F%3C/text%3E%3C/svg%3E" />
+    <style>
+:root {
+  --bg: #0b0f14; --panel: #11161d; --border: #1f2833; --text: #e6edf3;
+  --muted: #93a1b0; --accent: #34d399; --code-bg: #0d1420;
+  color-scheme: dark light;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f7f9fb; --panel: #ffffff; --border: #dfe6ee; --text: #101826;
+    --muted: #5b6b7c; --code-bg: #f1f5f9;
+  }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.6; -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 0 1.25rem; }
+nav {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1.1rem 0; font-size: 0.95rem;
+}
+nav .brand { color: var(--muted); font-weight: 600; }
+nav .brand:hover { color: var(--text); text-decoration: none; }
+header.hero { padding: 3.5rem 0 3rem; }
+.pills { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.1rem; }
+.pill {
+  font-size: 0.78rem; font-weight: 600; letter-spacing: 0.02em;
+  padding: 0.22rem 0.7rem; border-radius: 999px;
+  border: 1px solid var(--border); color: var(--muted); background: var(--panel);
+}
+.pill.accent { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+h1 { font-size: clamp(2.3rem, 6vw, 3.4rem); line-height: 1.1; letter-spacing: -0.02em; }
+h1 .dot { color: var(--accent); }
+.lead { font-size: clamp(1.15rem, 2.6vw, 1.45rem); font-weight: 500; margin-top: 0.9rem; }
+.desc { color: var(--muted); margin-top: 0.9rem; max-width: 46rem; }
+.actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.8rem; }
+.btn {
+  display: inline-block; padding: 0.6rem 1.15rem; border-radius: 8px;
+  font-weight: 600; font-size: 0.95rem; border: 1px solid var(--border);
+  background: var(--panel); color: var(--text);
+}
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #0b0f14; }
+.btn:hover { text-decoration: none; filter: brightness(1.1); }
+section { padding: 2.2rem 0; border-top: 1px solid var(--border); }
+section h2 { font-size: 1.35rem; margin-bottom: 1.3rem; letter-spacing: -0.01em; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 0.9rem; }
+.card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1.1rem 1.2rem;
+}
+.card h3 { font-size: 1rem; margin-bottom: 0.35rem; }
+.card h3::before { content: "\25AA\FE0E  "; color: var(--accent); }
+.card p { font-size: 0.92rem; color: var(--muted); }
+pre {
+  background: var(--code-bg); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent); border-radius: 8px;
+  padding: 1rem 1.2rem; overflow-x: auto; font-size: 0.9rem; line-height: 1.55;
+}
+code { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; }
+.credit {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+  padding: 1rem 1.2rem; font-size: 0.92rem; color: var(--muted);
+}
+footer {
+  border-top: 1px solid var(--border); padding: 1.6rem 0 2.4rem;
+  font-size: 0.88rem; color: var(--muted);
+  display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+}
+/* hub */
+.applist { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 0.9rem; }
+a.appcard {
+  display: block; background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1.15rem 1.25rem; color: var(--text);
+}
+a.appcard:hover { text-decoration: none; border-color: var(--card-accent); }
+a.appcard h3 { font-size: 1.05rem; }
+a.appcard h3::before { content: "\25CF  "; color: var(--card-accent); font-size: 0.7em; vertical-align: 2px; }
+a.appcard p { font-size: 0.9rem; color: var(--muted); margin-top: 0.3rem; }
+a.appcard .meta { display: block; margin-top: 0.6rem; font-size: 0.78rem; color: var(--card-accent); font-weight: 600; }
+.appcard.soon { opacity: 0.75; }
+</style>
+  </head>
+  <body>
+    <div class="wrap">
+      <nav>
+        <a class="brand" href="../">apps.jay739.dev</a>
+        <a href="https://github.com/jay739/triliage">GitHub &nearr;</a>
+      </nav>
+      <header class="hero">
+        <div class="pills"><span class="pill accent">Desktop client</span><span class="pill">Early scaffold</span></div>
+        <h1>triliage<span class="dot">.</span></h1>
+        <p class="lead">A modern, native desktop client for Trilium Notes.</p>
+        <p class="desc">Trilium is a capable self-hosted notes app whose only client is its own dated Electron UI. triliage talks to any Trilium instance over the documented ETAPI and gives it a fresh interface built from scratch in Flutter, independent of Trilium&#x27;s frontend code.</p>
+        <div class="actions">
+          <a class="btn primary" href="https://github.com/jay739/triliage">View on GitHub</a>
+          <a class="btn" href="#quickstart">Quickstart</a>
+        </div>
+      </header>
+      <section>
+        <h2>Features</h2>
+        <div class="grid"><div class="card"><h3>Works with your server</h3><p>Connects to any Trilium instance with ETAPI enabled. Just a URL and a token.</p></div><div class="card"><h3>Not another Electron app</h3><p>Flutter desktop, compiled native. Windows first, cross-platform by design.</p></div><div class="card"><h3>Note tree and search</h3><p>Planned: arbitrary nesting, clones, full-text search with Trilium&#x27;s query syntax.</p></div><div class="card"><h3>Proper rendering</h3><p>Planned: markdown and rich-text notes with code syntax highlighting.</p></div><div class="card"><h3>Multi-instance</h3><p>Planned: connect to more than one Trilium server and switch between them.</p></div><div class="card"><h3>Honest status</h3><p>Early scaffold. Toolchain verified, builds and runs on Windows. Feature work is underway.</p></div></div>
+      </section>
+      <section id="quickstart">
+        <h2>Quickstart</h2>
+        <pre><code>git clone https://github.com/jay739/triliage &amp;&amp; cd triliage
+flutter run -d windows
+# needs Flutter (beta channel) + VS Build Tools C++ workload</code></pre>
+      </section>
+      <section><h2>Credit where due</h2><div class="credit">A client for <a href='https://github.com/zadam/trilium'>Trilium Notes</a>. Not affiliated with the Trilium project.</div></section>
+      <footer>
+        <span>MIT License &middot; &copy; 2026 Jayakrishna Konda</span>
+        <span><a href="../">All apps</a> &middot; <a href="https://github.com/jay739">GitHub</a> &middot; <a href="https://jay739.dev">jay739.dev</a></span>
+      </footer>
+    </div>
+  </body>
+</html>
