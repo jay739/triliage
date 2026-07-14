@@ -1,0 +1,41 @@
+name: Release
+
+# Push a semver tag to publish a Windows build:
+#   git tag v0.1.0 && git push origin v0.1.0
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: beta
+      - run: flutter pub get
+      - run: flutter test
+      - run: flutter build windows --release
+      - name: Zip the runner folder
+        shell: pwsh
+        run: Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath triliage-${{ github.ref_name }}-windows-x64.zip
+      - name: Upload run artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: triliage-windows
+          path: triliage-*-windows-x64.zip
+      - name: Attach to GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: triliage-*-windows-x64.zip
+          generate_release_notes: true
+          body: |
+            Portable Windows build: unzip and run triliage.exe.
+            Unsigned, so SmartScreen may prompt on first launch.
