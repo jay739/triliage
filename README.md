@@ -4,19 +4,21 @@ A modern, native desktop client for [Trilium Notes](https://github.com/zadam/tri
 
 ## Why
 
-Trilium is a capable self-hosted note-taking app — full-text search, arbitrarily nested notes, revision history, attributes, encryption — exposed through a documented REST API (ETAPI). But its official client is the only client: a dated, Electron-derived UI with no real third-party alternatives.
+Trilium is a capable self-hosted note-taking app, with full-text search, arbitrarily nested notes, revision history, attributes, and encryption, exposed through a documented REST API (ETAPI). But its official client is the only client: a dated, Electron-derived UI with no real third-party alternatives.
 
-`triliage` talks to any Trilium instance over ETAPI and gives it a UI built from scratch, independent of Trilium's own frontend code. The goal is a general-purpose client anyone running Trilium can use, not a single-user tool tied to one setup.
+triliage talks to any Trilium instance over ETAPI and gives it a UI built from scratch, independent of Trilium's own frontend code. The goal is a general-purpose client anyone running Trilium can use, not a single-user tool tied to one setup.
 
 ## Status
 
-Early scaffold. Toolchain verified (Flutter beta channel + Visual Studio 2026 Build Tools), builds and runs as a Windows desktop app. Feature work — ETAPI integration, note tree, search, rendering — not yet started.
+Early scaffold. Toolchain verified (Flutter beta channel + Visual Studio 2026 Build Tools), builds and runs as a Windows desktop app. Feature work (ETAPI integration, note tree, search, rendering) has not started yet.
 
 ## Requirements
 
-- Flutter SDK (beta channel — stable does not yet support the VS 2026 CMake generator on Windows; will move to stable once that support ships)
-- Visual Studio Build Tools with the Desktop development with C++ workload (Windows target)
-- A running Trilium instance with ETAPI enabled, and an ETAPI token
+| Requirement               | Notes                                                                                                                  |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Flutter SDK               | Beta channel; stable does not yet support the VS 2026 CMake generator on Windows. Will move to stable once that ships. |
+| Visual Studio Build Tools | Desktop development with C++ workload (Windows target)                                                                 |
+| A Trilium instance        | ETAPI enabled, plus an ETAPI token                                                                                     |
 
 ## Running
 
@@ -30,7 +32,18 @@ flutter run -d windows
 flutter build windows
 ```
 
-Produces `build\windows\x64\runner\Release\triliage.exe`.
+Produces `build\windows\x64\runner\Release\triliage.exe`. Tagged releases (`v*.*.*`) also publish a portable Windows zip automatically.
+
+## Configuration
+
+Once the connection UI lands, everything a user needs to change lives in-app:
+
+| Setting     | Meaning                                                 |
+| ----------- | ------------------------------------------------------- |
+| Server URL  | Your Trilium instance, e.g. `https://notes.example.com` |
+| ETAPI token | Created in Trilium under Options, ETAPI                 |
+
+No configuration files or environment variables are used.
 
 ## Planned features
 
@@ -81,10 +94,10 @@ Produces `build\windows\x64\runner\Release\triliage.exe`.
 - [ ] Keyboard shortcuts / command palette
 - [ ] Offline/cached reading mode
 
-## Contributing
+## Contributing and security
 
-Not yet accepting external contributions — still pre-alpha. Will open up once the core ETAPI client and basic browsing UI are working.
+Pre-alpha, so expect churn. Small fixes are welcome any time; for anything larger, open an issue or discussion first so effort is not wasted. See [CONTRIBUTING.md](CONTRIBUTING.md). Report vulnerabilities privately per [SECURITY.md](SECURITY.md).
 
 ## License
 
-TBD.
+MIT, see [LICENSE](LICENSE).
