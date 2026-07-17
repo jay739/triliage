@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect x="0" y="0" width="512" height="512" rx="123" ry="123" fill="#0B0D10"/>
+  <g id="icon">
+    <!-- connectors: thick solid wedges from parent down to each child -->
+    <path d="M 226 168 L 286 168 L 190 340 L 138 340 Z" fill="#8B7CF6"/>
+    <path d="M 226 168 L 286 168 L 374 340 L 322 340 Z" fill="#8B7CF6"/>
+    <!-- parent node -->
+    <circle cx="256" cy="146" r="56" fill="#8B7CF6"/>
+    <!-- child nodes -->
+    <circle cx="164" cy="366" r="44" fill="#8B7CF6"/>
+    <circle cx="348" cy="366" r="44" fill="#8B7CF6"/>
+    <!-- contrasting dots to reinforce node reading at small scale -->
+    <circle cx="256" cy="146" r="16" fill="#F2F0EA"/>
+    <circle cx="164" cy="366" r="13" fill="#F2F0EA"/>
+    <circle cx="348" cy="366" r="13" fill="#F2F0EA"/>
+  </g>
+</svg>
