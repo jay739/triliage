@@ -1,0 +1,7 @@
+# The "live" tag marks tests that talk to a real Trilium instance. They skip
+# themselves unless TRILIAGE_LIVE_URL and TRILIAGE_LIVE_TOKEN are set, so a
+# plain `flutter test` run and CI are unaffected. Declared here so the test
+# runner does not warn about an unknown tag.
+tags:
+  live:
+    skip: false
