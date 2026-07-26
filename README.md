@@ -17,8 +17,26 @@ Early, but usable for reading. triliage connects to a Trilium instance, remember
 | Requirement               | Notes                                                                                                                  |
 | ------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | Flutter SDK               | Beta channel; stable does not yet support the VS 2026 CMake generator on Windows. Will move to stable once that ships. |
-| Visual Studio Build Tools | Desktop development with C++ workload (Windows target)                                                                 |
+| Visual Studio Build Tools | Desktop development with C++ workload, plus the ATL component (see below)                                              |
 | A Trilium instance        | ETAPI enabled, plus an ETAPI token                                                                                     |
+
+### The ATL component
+
+`flutter_secure_storage`, which keeps your token out of a plain file, compiles against ATL on Windows. Without it the build fails at `flutter_secure_storage_windows_plugin.cpp` with:
+
+```
+error C1083: Cannot open include file: 'atlstr.h'
+```
+
+Add it in the Visual Studio Installer under Individual components, "C++ ATL for latest build tools", or from an elevated prompt:
+
+```
+vs_installer.exe modify ^
+  --installPath "C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools" ^
+  --add Microsoft.VisualStudio.Component.VC.ATL --passive --norestart
+```
+
+If several Visual Studio instances are installed, add it to the one `flutter doctor -v` names, which is not necessarily the one `vswhere -latest` reports. Run `flutter clean` afterwards, because CMake caches the include paths it saw at configure time and will keep failing otherwise. GitHub's Windows runners already ship ATL, so release builds are unaffected.
 
 ## Running
 
