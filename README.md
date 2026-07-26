@@ -10,7 +10,7 @@ triliage talks to any Trilium instance over ETAPI and gives it a UI built from s
 
 ## Status
 
-Early scaffold. Toolchain verified (Flutter beta channel + Visual Studio 2026 Build Tools), builds and runs as a Windows desktop app. Feature work (ETAPI integration, note tree, search, rendering) has not started yet.
+Early, but usable for reading. triliage connects to a Trilium instance, remembers the connection, browses the full note tree, and renders text and code notes. Editing does not exist yet, and neither does search, so treat this as a reader rather than a replacement for the Trilium UI.
 
 ## Requirements
 
@@ -36,31 +36,37 @@ Produces `build\windows\x64\runner\Release\triliage.exe`. Tagged releases (`v*.*
 
 ## Configuration
 
-Once the connection UI lands, everything a user needs to change lives in-app:
+Everything lives in-app. There are no configuration files and no environment variables.
 
-| Setting     | Meaning                                                 |
-| ----------- | ------------------------------------------------------- |
-| Server URL  | Your Trilium instance, e.g. `https://notes.example.com` |
-| ETAPI token | Created in Trilium under Options, ETAPI                 |
+| Setting     | Meaning                                                                                                                    |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Server URL  | Your Trilium instance, e.g. `https://notes.example.com`                                                                    |
+| ETAPI token | Created in Trilium under Options, ETAPI. Or sign in with your Trilium password and triliage exchanges it for a token once. |
 
-No configuration files or environment variables are used.
+The server URL is forgiving: a bare host gets `https://`, and a trailing slash or `/etapi` is trimmed. Reverse-proxied sub-path installs such as `https://example.com/trilium` work too.
+
+The token is stored in the operating system credential store, which is DPAPI on Windows, Keychain on macOS, and libsecret on Linux. If you authenticate with a password, only the resulting token is kept; the password is never written anywhere. An ETAPI token grants full read and write access to every note on the instance, so revoke it in Trilium if you stop using this machine.
 
 ## Planned features
 
 ### Core / connectivity
 
-- [ ] ETAPI client (auth via token, base request/response handling)
+- [x] ETAPI client (auth via token, base request/response handling)
+- [x] Connection UI (server URL, token or password, verified before saving)
+- [x] Credentials persisted in the OS credential store, restored on launch
 - [ ] Multi-instance support (connect to more than one Trilium server, switch between them)
-- [ ] Connection settings UI (server URL, token, test connection)
 
 ### Browsing
 
-- [ ] Note tree view (arbitrary nesting, multiple parents/clones)
+- [x] Note tree view (lazily loaded, arbitrary nesting)
+- [ ] Clone-aware tree (a note appearing under several parents)
 - [ ] Breadcrumb / path navigation
 - [ ] Recently viewed / recently updated notes
-- [ ] Note attributes (labels/relations) view
+- [x] Note attributes (labels/relations) view
 
 ### Search
+
+The client method exists and is tested; none of it is wired to the UI yet.
 
 - [ ] Full-text search across notes
 - [ ] Trilium search syntax support (attribute-based queries)
@@ -68,8 +74,9 @@ No configuration files or environment variables are used.
 
 ### Reading
 
+- [x] Rich-text (HTML) note rendering
+- [x] Code note rendering (monospaced, unhighlighted)
 - [ ] Markdown rendering
-- [ ] Rich-text (HTML) note rendering
 - [ ] Code block syntax highlighting
 - [ ] Image and attachment rendering
 - [ ] Internal note links (jump between linked notes)
@@ -90,9 +97,13 @@ No configuration files or environment variables are used.
 
 ### Polish
 
-- [ ] Light/dark theme
+- [x] Light/dark theme (follows the system setting)
 - [ ] Keyboard shortcuts / command palette
 - [ ] Offline/cached reading mode
+
+## Notes it cannot show
+
+Protected notes are encrypted at rest and ETAPI has no way to unlock them, so triliage lists them in the tree but cannot render their contents. That is a limit of the API, not something a future version can work around. Image, file, and canvas notes are listed but not yet rendered, and those are just unfinished.
 
 ## Contributing and security
 
