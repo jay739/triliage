@@ -22,20 +22,49 @@ jobs:
       - run: flutter pub get
       - run: flutter test
       - run: flutter build windows --release
-      - name: Zip the runner folder
+
+      - name: Resolve the version
+        id: version
         shell: pwsh
-        run: Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath triliage-${{ github.ref_name }}-windows-x64.zip
-      - name: Upload run artifact
+        run: |
+          # workflow_dispatch has no tag to read, so fall back to a marker
+          # version rather than stamping a branch name into the installer.
+          $ref = '${{ github.ref_name }}'
+          $version = if ($ref -match '^v(\d+\.\d+\.\d+.*)$') { $Matches[1] } else { '0.0.0-dev' }
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "Building version $version"
+
+      - name: Build the installer
+        shell: pwsh
+        run: ./installer/build-installer.ps1 -Version ${{ steps.version.outputs.version }}
+
+      - name: Zip the portable build
+        shell: pwsh
+        run: Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath dist\triliage-${{ steps.version.outputs.version }}-windows-x64-portable.zip
+
+      - name: Upload run artifacts
         uses: actions/upload-artifact@v4
         with:
           name: triliage-windows
-          path: triliage-*-windows-x64.zip
+          path: dist/*
+          if-no-files-found: error
+
       - name: Attach to GitHub release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: triliage-*-windows-x64.zip
+          files: dist/*
           generate_release_notes: true
           body: |
-            Portable Windows build: unzip and run triliage.exe.
-            Unsigned, so SmartScreen may prompt on first launch.
+            **Installer (recommended):** `triliage-${{ steps.version.outputs.version }}-windows-x64-setup.exe`
+
+            Installs per-user with no admin rights needed, adds a Start Menu
+            entry, and registers an uninstaller. Choose "Install for all users"
+            in the wizard if you want it machine-wide.
+
+            **Portable:** the `-portable.zip` needs no install, but the whole
+            folder must be kept together. `triliage.exe` is a small launcher
+            that cannot run without its sibling DLLs and `data\` directory.
+
+            Both are unsigned, so SmartScreen will warn on first run. Choose
+            "More info", then "Run anyway".
