@@ -47,10 +47,22 @@ flutter run -d windows
 ## Building
 
 ```
-flutter build windows
+flutter build windows --release
 ```
 
-Produces `build\windows\x64\runner\Release\triliage.exe`. Tagged releases (`v*.*.*`) also publish a portable Windows zip automatically.
+Produces `build\windows\x64\runner\Release\`. Note that `triliage.exe` there is a small launcher, not a standalone binary: the engine lives in `flutter_windows.dll` and the compiled app in `data\app.so`, so the whole folder has to stay together.
+
+### Installer
+
+```
+pwsh installer/build-installer.ps1 -Version 0.1.0
+```
+
+Produces `dist\triliage-0.1.0-windows-x64-setup.exe` using [Inno Setup](https://jrsoftware.org/isinfo.php), installing it via Chocolatey if it is not already present. The script is the same one CI runs, so a locally built installer matches a released one.
+
+The installer is per-user by default, needing no admin rights and raising no UAC prompt, and offers a machine-wide install from the wizard. It adds a Start Menu entry and a working uninstaller.
+
+CI compiles the installer on every pull request, so packaging cannot quietly break between releases. Tagged releases (`v*.*.*`) publish both the installer and a portable zip. Both are unsigned, so SmartScreen warns on first run.
 
 ## Configuration
 
