@@ -10,7 +10,7 @@ triliage talks to any Trilium instance over ETAPI and gives it a UI built from s
 
 ## Status
 
-Early, but usable for reading. triliage connects to a Trilium instance, remembers the connection, browses the full note tree, and renders text and code notes. Editing does not exist yet, and neither does search, so treat this as a reader rather than a replacement for the Trilium UI.
+Early, but usable for reading. triliage connects to a Trilium instance, remembers the connection, browses the full note tree, searches it with Trilium's own query syntax, and renders text and code notes. Editing does not exist yet, so treat this as a reader rather than a replacement for the Trilium UI.
 
 ## Requirements
 
@@ -96,11 +96,12 @@ The token is stored in the operating system credential store, which is DPAPI on 
 
 ### Search
 
-The client method exists and is tested; none of it is wired to the UI yet.
+The sidebar switches between the tree and search with the Tree/Search buttons, or Ctrl+F from anywhere in the window. Queries are Trilium's own syntax, so `homelab`, `#book`, `#year >= 2020`, `"exact phrase"`, and `note.title *=* wiki` all work. Two toggles cover the flags that have no query-syntax equivalent: **Titles only** searches titles rather than full text, which is much faster on a large instance, and **Archived** includes notes Trilium leaves out by default. Results are capped at 100 per search and the pane says when that cap was reached.
 
-- [ ] Full-text search across notes
-- [ ] Trilium search syntax support (attribute-based queries)
+- [x] Full-text search across notes
+- [x] Trilium search syntax support (attribute-based queries)
 - [ ] Search result highlighting
+- [ ] Reveal a search result in the tree
 
 ### Reading
 

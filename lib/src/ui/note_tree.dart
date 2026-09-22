@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../etapi/etapi_client.dart';
 import '../etapi/etapi_exception.dart';
 import '../etapi/models/note.dart';
+import 'note_presentation.dart';
 
 /// Lazily loaded note tree.
 ///
@@ -149,7 +150,7 @@ class _NoteTreeNodeState extends State<NoteTreeNode> {
                       : null,
                 ),
                 Icon(
-                  _iconFor(widget.note),
+                  noteTypeIcon(widget.note),
                   size: 16,
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -218,21 +219,6 @@ class _NoteTreeNodeState extends State<NoteTreeNode> {
           ),
       ],
     );
-  }
-
-  static IconData _iconFor(Note note) {
-    if (note.isProtected) return Icons.lock_outline;
-    return switch (note.type) {
-      'code' => Icons.code,
-      'image' => Icons.image_outlined,
-      'file' => Icons.attach_file,
-      'book' => Icons.menu_book_outlined,
-      'search' => Icons.saved_search,
-      'canvas' => Icons.brush_outlined,
-      'mermaid' => Icons.account_tree_outlined,
-      'render' || 'webView' => Icons.web_outlined,
-      _ => Icons.description_outlined,
-    };
   }
 }
 
