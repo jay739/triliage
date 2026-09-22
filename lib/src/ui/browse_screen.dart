@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../app_session.dart';
+import '../etapi/etapi_client.dart';
 import '../etapi/models/note.dart';
 import 'note_tree.dart';
 import 'note_viewer.dart';
+import 'search_panel.dart';
+
+/// Which view the sidebar is currently showing.
+enum SidebarTab { tree, search }
 
 /// The main window once connected: note tree on the left, reader on the right.
 class BrowseScreen extends StatefulWidget {
@@ -17,6 +23,11 @@ class BrowseScreen extends StatefulWidget {
 
 class _BrowseScreenState extends State<BrowseScreen> {
   Note? _selected;
+  SidebarTab _tab = SidebarTab.tree;
+
+  /// Held here rather than inside the panel so Ctrl+F can move the cursor into
+  /// the query field from anywhere in the window.
+  final _searchFocus = FocusNode();
 
   /// Width of the tree pane. Draggable, because note titles vary wildly in
   /// length and a fixed sidebar truncates either constantly or never.
@@ -24,6 +35,22 @@ class _BrowseScreenState extends State<BrowseScreen> {
 
   static const _minSidebar = 200.0;
   static const _maxSidebar = 560.0;
+
+  @override
+  void dispose() {
+    _searchFocus.dispose();
+    super.dispose();
+  }
+
+  void _showSearch() {
+    setState(() => _tab = SidebarTab.search);
+    // Deferred to after the rebuild: until then the query field is still the
+    // hidden child of the IndexedStack, and asking a hidden field for focus
+    // does not reliably stick.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _searchFocus.requestFocus();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +64,26 @@ class _BrowseScreenState extends State<BrowseScreen> {
 
     final theme = Theme.of(context);
 
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.keyF, control: true):
+            _showSearch,
+      },
+      // Something in the subtree has to hold focus for the shortcut to be
+      // reached, and nothing is focused at the moment the window opens.
+      child: Focus(
+        autofocus: true,
+        child: _buildScaffold(context, theme, client, session),
+      ),
+    );
+  }
+
+  Widget _buildScaffold(
+    BuildContext context,
+    ThemeData theme,
+    EtapiClient client,
+    AppSession session,
+  ) {
     return Scaffold(
       appBar: AppBar(
         title: Text(session.profile?.displayName ?? 'triliage'),
@@ -64,10 +111,62 @@ class _BrowseScreenState extends State<BrowseScreen> {
         children: [
           SizedBox(
             width: _sidebarWidth,
-            child: NoteTreeView(
-              client: client,
-              selectedNoteId: _selected?.noteId,
-              onSelect: (note) => setState(() => _selected = note),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+                  child: SegmentedButton<SidebarTab>(
+                    segments: const [
+                      ButtonSegment(
+                        value: SidebarTab.tree,
+                        icon: Icon(Icons.account_tree_outlined, size: 18),
+                        label: Text('Tree'),
+                      ),
+                      ButtonSegment(
+                        value: SidebarTab.search,
+                        icon: Icon(Icons.search, size: 18),
+                        label: Text('Search'),
+                      ),
+                    ],
+                    selected: {_tab},
+                    showSelectedIcon: false,
+                    onSelectionChanged: (selection) {
+                      if (selection.first == SidebarTab.search) {
+                        _showSearch();
+                      } else {
+                        setState(() => _tab = selection.first);
+                      }
+                    },
+                    style: const ButtonStyle(
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ),
+                ),
+                const Divider(height: 1),
+                // IndexedStack rather than swapping widgets, because the tree
+                // caches every branch it has expanded in its own State. Taking
+                // it off the tree to show search would throw that away and
+                // refetch the whole visible tree on the way back.
+                Expanded(
+                  child: IndexedStack(
+                    index: _tab.index,
+                    children: [
+                      NoteTreeView(
+                        client: client,
+                        selectedNoteId: _selected?.noteId,
+                        onSelect: (note) => setState(() => _selected = note),
+                      ),
+                      SearchPanel(
+                        client: client,
+                        focusNode: _searchFocus,
+                        selectedNoteId: _selected?.noteId,
+                        onSelect: (note) => setState(() => _selected = note),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
           _SidebarDivider(

@@ -4,6 +4,7 @@ import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart
 import '../etapi/etapi_client.dart';
 import '../etapi/etapi_exception.dart';
 import '../etapi/models/note.dart';
+import 'note_presentation.dart';
 
 /// Read-only rendering of a single note's body.
 ///
@@ -121,7 +122,7 @@ class _NoteHeader extends StatelessWidget {
           Text(
             [
               note.type,
-              if (modified != null) 'modified ${_formatDate(modified)}',
+              if (modified != null) 'modified ${formatNoteDate(modified)}',
             ].join(' · '),
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
@@ -146,15 +147,6 @@ class _NoteHeader extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  /// Deliberately plain and locale-independent. Pulling in `intl` for one
-  /// timestamp is not worth the dependency yet.
-  static String _formatDate(DateTime date) {
-    final local = date.toLocal();
-    String two(int n) => n.toString().padLeft(2, '0');
-    return '${local.year}-${two(local.month)}-${two(local.day)} '
-        '${two(local.hour)}:${two(local.minute)}';
   }
 }
 
