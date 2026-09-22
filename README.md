@@ -77,21 +77,31 @@ The server URL is forgiving: a bare host gets `https://`, and a trailing slash o
 
 The token is stored in the operating system credential store, which is DPAPI on Windows, Keychain on macOS, and libsecret on Linux. If you authenticate with a password, only the resulting token is kept; the password is never written anywhere. An ETAPI token grants full read and write access to every note on the instance, so revoke it in Trilium if you stop using this machine.
 
+Note that Disconnect currently only forgets the token on this machine. It does not yet deactivate it server side, so a token you have disconnected stays valid until you revoke it in Trilium under Options, ETAPI. Closing that gap is the first item on the roadmap below.
+
 ## Planned features
+
+The roadmap below is scoped against what Trilium's ETAPI actually exposes, and the endpoint behind each non-obvious item is named so it is clear the feature is possible rather than aspirational. ETAPI publishes about forty operations across twenty-five paths, and triliage currently calls five of them, so most of what follows is wiring rather than invention.
+
+**Next up, in order:** revoke the token on disconnect, then attachment and image rendering, then revision browsing. The first closes a real security gap, and the other two are the largest gaps in reading that need no write access.
 
 ### Core / connectivity
 
 - [x] ETAPI client (auth via token, base request/response handling)
 - [x] Connection UI (server URL, token or password, verified before saving)
 - [x] Credentials persisted in the OS credential store, restored on launch
+- [ ] Deactivate the token server side on disconnect (`POST /etapi/auth/logout`), instead of only forgetting it locally
 - [ ] Multi-instance support (connect to more than one Trilium server, switch between them)
+- [ ] Instance statistics panel (`GET /etapi/metrics?format=json`, which returns counts and version only, never note content)
 
 ### Browsing
 
 - [x] Note tree view (lazily loaded, arbitrary nesting)
-- [ ] Clone-aware tree (a note appearing under several parents)
+- [ ] Clone-aware tree (`GET /etapi/branches/{branchId}`; a note's placement is a Branch, so one note can legitimately sit under several parents)
+- [ ] Honour Trilium's own child ordering and branch prefixes (`notePosition` and `prefix` on Branch)
 - [ ] Breadcrumb / path navigation
-- [ ] Recently viewed / recently updated notes
+- [ ] Recent changes view (`GET /etapi/notes/history`, scopeable to a subtree with `ancestorNoteId`)
+- [ ] Day, week, month and year note navigation (`GET /etapi/calendar/days/{date}` and siblings, plus `GET /etapi/inbox/{date}`)
 - [x] Note attributes (labels/relations) view
 
 ### Search
@@ -100,24 +110,41 @@ The sidebar switches between the tree and search with the Tree/Search buttons, o
 
 - [x] Full-text search across notes
 - [x] Trilium search syntax support (attribute-based queries)
+- [ ] Scope a search to the selected subtree (the `ancestorNoteId` parameter the client already accepts)
 - [ ] Search result highlighting
 - [ ] Reveal a search result in the tree
+- [ ] Recent query history, and saving a query as a Trilium search note
 
 ### Reading
 
 - [x] Rich-text (HTML) note rendering
 - [x] Code note rendering (monospaced, unhighlighted)
+- [ ] Image and attachment rendering (`GET /etapi/notes/{noteId}/attachments`, then `GET /etapi/attachments/{attachmentId}/content`)
 - [ ] Markdown rendering
 - [ ] Code block syntax highlighting
-- [ ] Image and attachment rendering
 - [ ] Internal note links (jump between linked notes)
+
+### History and recovery
+
+All read-only except the snapshot, so this whole section is reachable without the app ever writing a note body.
+
+- [ ] Browse a note's revisions (`GET /etapi/notes/{noteId}/revisions`, `GET /etapi/revisions/{revisionId}`)
+- [ ] Read and diff a revision against the current content (`GET /etapi/revisions/{revisionId}/content`)
+- [ ] Take a snapshot before editing (`POST /etapi/notes/{noteId}/revision`)
+- [ ] Restore a deleted note (`POST /etapi/notes/{noteId}/undelete`; `RecentChange.canBeUndeleted` says which ones qualify)
+
+### Export and backup
+
+- [ ] Export a subtree to ZIP (`GET /etapi/notes/{noteId}/export?format=html|markdown|share`, passing `root` to export everything)
+- [ ] Import a ZIP under a note (`POST /etapi/notes/{noteId}/import`)
+- [ ] Trigger a server-side backup (`PUT /etapi/backup/{backupName}`)
 
 ### Editing
 
-- [ ] Create / edit / delete notes
+- [ ] Create / edit / delete notes (`POST /etapi/create-note`, `PATCH /etapi/notes/{noteId}`, `PUT /etapi/notes/{noteId}/content`, `DELETE /etapi/notes/{noteId}`)
 - [ ] Markdown editing mode
-- [ ] Note revision history browsing and rollback
-- [ ] Attribute editing
+- [ ] Attribute editing (`POST`, `PATCH` and `DELETE` on `/etapi/attributes`)
+- [ ] Move and clone notes by editing their branches (`POST /etapi/branches`, `PATCH` and `DELETE` on `/etapi/branches/{branchId}`)
 
 ### Platform
 
@@ -129,8 +156,19 @@ The sidebar switches between the tree and search with the Tree/Search buttons, o
 ### Polish
 
 - [x] Light/dark theme (follows the system setting)
-- [ ] Keyboard shortcuts / command palette
+- [x] Ctrl+F jumps to search from anywhere in the window
+- [ ] Fuller keyboard shortcuts and a command palette
 - [ ] Offline/cached reading mode
+- [ ] Remember the last selected note and sidebar width between launches
+
+### Known gaps in what exists
+
+Not roadmap items so much as honest limits of the current build.
+
+- Hidden notes never appear. Trilium keeps system notes in a `_hidden` subtree which is not a child of `root`, and the tree starts at `root`. The fix is probably to offer `_hidden` as a second root, but that should be verified over ETAPI before it is designed.
+- Protected notes are listed but unreadable, which is permanent. See below.
+- A search result opens in the reader without revealing where it sits in the tree.
+- Nothing is cached between launches, so every run re-fetches the tree from scratch.
 
 ## Notes it cannot show
 
