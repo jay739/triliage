@@ -1,5 +1,9 @@
 # triliage
 
+<p align="center">
+  <img src="docs/logo.svg" alt="triliage logo" width="128" />
+</p>
+
 A modern, native desktop client for [Trilium Notes](https://github.com/zadam/trilium), built with Flutter.
 
 ## Why
